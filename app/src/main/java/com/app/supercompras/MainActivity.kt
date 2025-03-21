@@ -7,16 +7,18 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,10 +33,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.app.supercompras.ui.theme.Coral
+import com.app.supercompras.ui.theme.Marinho
 import com.app.supercompras.ui.theme.SuperComprasTheme
+import com.app.supercompras.ui.theme.Typography
 
 class MainActivity : ComponentActivity() {
     private val viewModel: ListaComprasViewModel by viewModels()
@@ -43,7 +48,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            SuperComprasTheme {
+            SuperComprasTheme(darkTheme = false, dynamicColor = false) {
                 Scaffold(
                     modifier = Modifier
                         .fillMaxSize()
@@ -62,16 +67,18 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun ListaDeCompras(modifier: Modifier = Modifier, viewModel: ListaComprasViewModel) {
     val itens by viewModel.itens.collectAsState()
-    
+
     Column(modifier = modifier) {
         CampoAdicionar(
             aoSalvarItem = { novoItem ->
                 viewModel.adicionarItem(novoItem)
             }
         )
-        
+
+        Spacer(modifier = Modifier.size(48.dp))
+
         Titulo(text = "Lista de Compras")
-        
+
         // Lista de itens não comprados
         ListaItens(
             itens = itens.filter { !it.comprado },
@@ -79,10 +86,11 @@ fun ListaDeCompras(modifier: Modifier = Modifier, viewModel: ListaComprasViewMod
             onDelete = { item -> viewModel.excluirItem(item) },
             onEdit = { item, novoNome -> viewModel.editarItem(item, novoNome) }
         )
-        
+
         if (itens.any { it.comprado }) {
+            Spacer(modifier = Modifier.size(48.dp))
             Titulo(text = "Comprado")
-            
+
             ListaItens(
                 itens = itens.filter { it.comprado },
                 onCheckChange = { item -> viewModel.alterarStatusItem(item) },
@@ -96,7 +104,7 @@ fun ListaDeCompras(modifier: Modifier = Modifier, viewModel: ListaComprasViewMod
 @Composable
 fun CampoAdicionar(aoSalvarItem: (String) -> Unit) {
     var texto by remember { mutableStateOf("") }
-    
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(vertical = 16.dp)
@@ -109,19 +117,16 @@ fun CampoAdicionar(aoSalvarItem: (String) -> Unit) {
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
         )
-        
+
         Button(
-            onClick = { 
+            onClick = {
                 if (texto.isNotBlank()) {
                     aoSalvarItem(texto)
                     texto = ""
                 }
-            },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFF55B64)
-            )
+            }
         ) {
-            Text("Salvar Item")
+            Text("Salvar Item", style = Typography.bodyLarge)
         }
     }
 }
@@ -133,7 +138,7 @@ fun ListaItens(
     onDelete: (ItemCompra) -> Unit,
     onEdit: (ItemCompra, String) -> Unit
 ) {
-    Column {
+    Column(modifier = Modifier.padding(top = 24.dp)) {
         itens.forEach { item ->
             ItemLista(
                 item = item,
@@ -141,6 +146,7 @@ fun ListaItens(
                 onDelete = { onDelete(item) },
                 onEdit = { novoNome -> onEdit(item, novoNome) }
             )
+            Spacer(Modifier.size(16.dp))
         }
     }
 }
@@ -155,27 +161,29 @@ fun ItemLista(
     var editando by remember { mutableStateOf(false) }
     var textoEdicao by remember { mutableStateOf(item.nome) }
 
-    Column {
+    Column(horizontalAlignment = Alignment.Start) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(vertical = 4.dp)
+            modifier = Modifier.align(Alignment.Start)
         ) {
             Checkbox(
                 checked = item.comprado,
                 onCheckedChange = { onCheckChange() },
-                modifier = Modifier.padding(end = 8.dp)
+                colors = CheckboxDefaults.colors(checkedColor = Marinho, uncheckedColor = Marinho),
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .requiredSize(24.dp)
             )
-            
+
             if (editando) {
                 OutlinedTextField(
                     value = textoEdicao,
                     onValueChange = { textoEdicao = it },
                     modifier = Modifier
-                        .weight(1f)
                         .padding(end = 8.dp),
                     singleLine = true
                 )
-                
+
                 IconButton(
                     onClick = {
                         if (textoEdicao.isNotBlank()) {
@@ -187,43 +195,49 @@ fun ItemLista(
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = "Salvar",
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(16.dp),
+                        tint = Marinho
                     )
                 }
             } else {
                 Text(
                     text = item.nome,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    textDecoration = if (item.comprado) TextDecoration.LineThrough else TextDecoration.None,
+                    style = Typography.bodyMedium,
+                    textAlign = TextAlign.Start,
                 )
-                
-                IconButton(onClick = onDelete) {
+
+                IconButton(onClick = onDelete, modifier = Modifier.size(16.dp)) {
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Excluir",
-                        modifier = Modifier.size(20.dp)
+                        tint = Marinho
                     )
                 }
-                
+
+                Spacer(modifier = Modifier.size(8.dp))
+
                 IconButton(
-                    onClick = { 
+                    onClick = {
                         editando = true
                         textoEdicao = item.nome
-                    }
+                    },
+                    modifier = Modifier.size(16.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = "Editar",
-                        modifier = Modifier.size(20.dp)
+                        tint = Marinho
                     )
                 }
             }
         }
-        
+
         Text(
             text = item.dataHora,
-            fontSize = 12.sp,
-            color = Color.Gray,
-            modifier = Modifier.padding(start = 40.dp)
+            textAlign = TextAlign.Start,
+            style = Typography.labelSmall
         )
     }
 }
@@ -231,14 +245,12 @@ fun ItemLista(
 @Composable
 fun Titulo(text: String, modifier: Modifier = Modifier) {
     Column(modifier, horizontalAlignment = Alignment.Start) {
-        val coral = Color(0xFFF55B64)
         Text(
             text = text,
-            color = coral,
-            fontSize = 20.sp,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = 8.dp),
+            style = Typography.headlineLarge
         )
-        HorizontalDivider(thickness = 2.dp, color = coral)
+        HorizontalDivider(thickness = 2.dp, color = Coral)
     }
 }
 
