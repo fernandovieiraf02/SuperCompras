@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,8 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
@@ -33,6 +36,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -52,7 +58,7 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(vertical = 56.dp, horizontal = 56.dp),
+                        .padding(vertical = 16.dp, horizontal = 16.dp),
                 ) { innerPadding ->
                     ListaDeCompras(
                         modifier = Modifier.padding(innerPadding),
@@ -68,7 +74,17 @@ class MainActivity : ComponentActivity() {
 fun ListaDeCompras(modifier: Modifier = Modifier, viewModel: ListaComprasViewModel) {
     val itens by viewModel.itens.collectAsState()
 
-    Column(modifier = modifier) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+
+        Image(
+            painterResource(R.drawable.imagem_topo),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .size(160.dp)
+                .padding(bottom = 24.dp)
+        )
+
         CampoAdicionar(
             aoSalvarItem = { novoItem ->
                 viewModel.adicionarItem(novoItem)
@@ -78,6 +94,16 @@ fun ListaDeCompras(modifier: Modifier = Modifier, viewModel: ListaComprasViewMod
         Spacer(modifier = Modifier.size(48.dp))
 
         Titulo(text = "Lista de Compras")
+
+        if (itens.isEmpty()) {
+            Spacer(Modifier.size(24.dp))
+            Text(
+                text = "Sua lista está vazia. Adicione itens a ela para não esquecer nada na próxima compra!",
+                style = Typography.bodyLarge,
+                textAlign = TextAlign.Start,
+                color = Marinho
+            )
+        }
 
         // Lista de itens não comprados
         ListaItens(
@@ -106,16 +132,23 @@ fun CampoAdicionar(aoSalvarItem: (String) -> Unit) {
     var texto by remember { mutableStateOf("") }
 
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(vertical = 16.dp)
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         OutlinedTextField(
             value = texto,
             onValueChange = { novoTexto -> texto = novoTexto },
-            placeholder = { Text("Digite o item que deseja adicionar") },
+            placeholder = {
+                Text(
+                    "Digite o item que deseja adicionar",
+                    style = Typography.bodyMedium,
+                    color = Color.Gray
+                )
+            },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp)
+                .padding(vertical = 8.dp),
+            singleLine = true,
+            shape = RoundedCornerShape(32.dp),
         )
 
         Button(
@@ -164,7 +197,7 @@ fun ItemLista(
     Column(horizontalAlignment = Alignment.Start) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.align(Alignment.Start)
+            modifier = Modifier.align(Alignment.Start).padding(bottom = 8.dp)
         ) {
             Checkbox(
                 checked = item.comprado,
@@ -180,7 +213,8 @@ fun ItemLista(
                     value = textoEdicao,
                     onValueChange = { textoEdicao = it },
                     modifier = Modifier
-                        .padding(end = 8.dp),
+                        .padding(end = 8.dp)
+                        .weight(1f),
                     singleLine = true
                 )
 
@@ -190,12 +224,12 @@ fun ItemLista(
                             onEdit(textoEdicao)
                             editando = false
                         }
-                    }
+                    },
+                    modifier = Modifier.size(16.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Edit,
+                        imageVector = Icons.Default.Done,
                         contentDescription = "Salvar",
-                        modifier = Modifier.size(16.dp),
                         tint = Marinho
                     )
                 }
