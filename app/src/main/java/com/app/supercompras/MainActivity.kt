@@ -11,9 +11,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -33,6 +36,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,35 +78,37 @@ class MainActivity : ComponentActivity() {
 fun ListaDeCompras(modifier: Modifier = Modifier, viewModel: ListaComprasViewModel) {
     val itens by viewModel.itens.collectAsState()
 
-    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+    LazyColumn(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
 
-        Image(
-            painterResource(R.drawable.imagem_topo),
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
-            modifier = Modifier
-                .size(160.dp)
-                .padding(bottom = 24.dp)
-        )
-
-        CampoAdicionar(
-            aoSalvarItem = { novoItem ->
-                viewModel.adicionarItem(novoItem)
-            }
-        )
-
-        Spacer(modifier = Modifier.size(48.dp))
-
-        Titulo(text = "Lista de Compras")
-
-        if (itens.isEmpty()) {
-            Spacer(Modifier.size(24.dp))
-            Text(
-                text = "Sua lista está vazia. Adicione itens a ela para não esquecer nada na próxima compra!",
-                style = Typography.bodyLarge,
-                textAlign = TextAlign.Start,
-                color = Marinho
+        item {
+            Image(
+                painterResource(R.drawable.imagem_topo),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .size(160.dp)
+                    .padding(bottom = 24.dp)
             )
+
+            CampoAdicionar(
+                aoSalvarItem = { novoItem ->
+                    viewModel.adicionarItem(novoItem)
+                }
+            )
+
+            Spacer(modifier = Modifier.size(48.dp))
+
+            Titulo(text = "Lista de Compras")
+
+            if (itens.isEmpty()) {
+                Spacer(Modifier.size(24.dp))
+                Text(
+                    text = "Sua lista está vazia. Adicione itens a ela para não esquecer nada na próxima compra!",
+                    style = Typography.bodyLarge,
+                    textAlign = TextAlign.Start,
+                    color = Marinho
+                )
+            }
         }
 
         // Lista de itens não comprados
@@ -114,8 +120,10 @@ fun ListaDeCompras(modifier: Modifier = Modifier, viewModel: ListaComprasViewMod
         )
 
         if (itens.any { it.comprado }) {
-            Spacer(modifier = Modifier.size(48.dp))
-            Titulo(text = "Comprado")
+            item {
+                Spacer(modifier = Modifier.size(48.dp))
+                Titulo(text = "Comprado")
+            }
 
             ListaItens(
                 itens = itens.filter { it.comprado },
@@ -129,7 +137,7 @@ fun ListaDeCompras(modifier: Modifier = Modifier, viewModel: ListaComprasViewMod
 
 @Composable
 fun CampoAdicionar(aoSalvarItem: (String) -> Unit) {
-    var texto by remember { mutableStateOf("") }
+    var texto by rememberSaveable { mutableStateOf("") }
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
@@ -164,23 +172,24 @@ fun CampoAdicionar(aoSalvarItem: (String) -> Unit) {
     }
 }
 
-@Composable
-fun ListaItens(
+fun LazyListScope.ListaItens(
     itens: List<ItemCompra>,
     onCheckChange: (ItemCompra) -> Unit,
     onDelete: (ItemCompra) -> Unit,
     onEdit: (ItemCompra, String) -> Unit
 ) {
-    Column(modifier = Modifier.padding(top = 24.dp)) {
-        itens.forEach { item ->
-            ItemLista(
-                item = item,
-                onCheckChange = { onCheckChange(item) },
-                onDelete = { onDelete(item) },
-                onEdit = { novoNome -> onEdit(item, novoNome) }
-            )
-            Spacer(Modifier.size(16.dp))
-        }
+    item {
+        Spacer(modifier = Modifier.height(24.dp))
+    }
+    items(itens.size) { index ->
+        val compra = itens[index]
+        ItemLista(
+            item = compra,
+            onCheckChange = { onCheckChange(compra) },
+            onDelete = { onDelete(compra) },
+            onEdit = { novoNome -> onEdit(compra, novoNome) }
+        )
+        Spacer(Modifier.size(16.dp))
     }
 }
 
@@ -197,7 +206,9 @@ fun ItemLista(
     Column(horizontalAlignment = Alignment.Start) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.align(Alignment.Start).padding(bottom = 8.dp)
+            modifier = Modifier
+                .align(Alignment.Start)
+                .padding(bottom = 8.dp)
         ) {
             Checkbox(
                 checked = item.comprado,
