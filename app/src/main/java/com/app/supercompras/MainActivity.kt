@@ -21,6 +21,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.app.supercompras.ui.theme.SuperComprasTheme
+import com.app.supercompras.ui.theme.Typography
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,6 +32,7 @@ class MainActivity : ComponentActivity() {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     //ImagemTopo(modifier = Modifier.padding(innerPadding))
                     //Titulo(modifier = Modifier.padding(innerPadding))
+
                     Icone(
                         modifier = Modifier.padding(innerPadding),
                         icone = Icons.Default.Delete
