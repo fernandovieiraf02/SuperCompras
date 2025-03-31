@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,8 +19,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -90,10 +93,10 @@ fun ListaDeCompras(modifier: Modifier = Modifier) {
             aoRemoverItem = { itemRemovido ->
                 listaDeItens = listaDeItens - itemRemovido
             },
-            aoEditarItem = { itemEditado ->
+            aoEditarItem = { itemEditado, novoTexto ->
                 listaDeItens = listaDeItens.map { itemAtual ->
                     if (itemAtual == itemEditado) {
-                        itemAtual.copy(texto = itemEditado.texto)
+                        itemAtual.copy(texto = novoTexto)
                     } else {
                         itemAtual
                     }
@@ -118,10 +121,10 @@ fun ListaDeCompras(modifier: Modifier = Modifier) {
                 aoRemoverItem = { itemRemovido ->
                     listaDeItens = listaDeItens - itemRemovido
                 },
-                aoEditarItem = { itemEditado ->
+                aoEditarItem = { itemEditado, novoTexto ->
                     listaDeItens = listaDeItens.map { itemAtual ->
                         if (itemAtual == itemEditado) {
-                            itemAtual.copy(texto = itemEditado.texto)
+                            itemAtual.copy(texto = novoTexto)
                         } else {
                             itemAtual
                         }
@@ -137,7 +140,7 @@ fun ListaDeItems(
     lista: List<ItemCompra>,
     aoMudarStatus: (item: ItemCompra) -> Unit = {},
     aoRemoverItem: (item: ItemCompra) -> Unit = {},
-    aoEditarItem: (item: ItemCompra) -> Unit = {},
+    aoEditarItem: (item: ItemCompra, novoTexto: String) -> Unit = {_, _ ->},
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
@@ -199,7 +202,7 @@ fun ItemDaLista(
     item: ItemCompra,
     aoMudarStatus: (item: ItemCompra) -> Unit = {},
     aoRemoverItem: (item: ItemCompra) -> Unit = {},
-    aoEditarItem: (item: ItemCompra) -> Unit = {},
+    aoEditarItem: (item: ItemCompra, novoTexto: String) -> Unit = {_, _ -> },
     modifier: Modifier = Modifier
 ) {
     Column(verticalArrangement = Arrangement.Top, modifier = modifier) {
@@ -207,6 +210,9 @@ fun ItemDaLista(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start
         ) {
+            var textoEditado by rememberSaveable { mutableStateOf(item.texto) }
+            var edicao by rememberSaveable { mutableStateOf(false) }
+
             Checkbox(
                 checked = item.foiComprado,
                 onCheckedChange = {
@@ -216,12 +222,32 @@ fun ItemDaLista(
                     .padding(end = 8.dp)
                     .requiredSize(24.dp)
             )
-            Text(
-                text = item.texto,
-                modifier = Modifier.weight(1f),
-                style = Typography.bodyMedium,
-                textAlign = TextAlign.Start
-            )
+
+            if (edicao) {
+                OutlinedTextField(
+                    value = textoEditado,
+                    onValueChange = { textoEditado = it },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    shape = RoundedCornerShape(24.dp)
+                )
+
+                IconButton(
+                    onClick = {
+                        aoEditarItem(item, textoEditado)
+                        edicao = false
+                    }
+                ) {
+                    Icone(Icons.Default.Done, modifier = Modifier.size(16.dp))
+                }
+            } else {
+                Text(
+                    text = item.texto,
+                    modifier = Modifier.weight(1f),
+                    style = Typography.bodyMedium,
+                    textAlign = TextAlign.Start
+                )
+            }
             IconButton(
                 onClick = { aoRemoverItem(item) },
                 modifier = Modifier.padding(end = 8.dp)
@@ -233,7 +259,9 @@ fun ItemDaLista(
                 )
             }
             IconButton(
-                onClick = { aoEditarItem(item) }
+                onClick = {
+                    edicao = true
+                }
             ) {
                 Icone(Icons.Default.Edit, modifier = Modifier.size(16.dp))
             }
