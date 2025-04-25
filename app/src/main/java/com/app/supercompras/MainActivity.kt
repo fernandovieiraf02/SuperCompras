@@ -47,6 +47,10 @@ import androidx.compose.ui.unit.dp
 import com.app.supercompras.ui.theme.Marinho
 import com.app.supercompras.ui.theme.SuperComprasTheme
 import com.app.supercompras.ui.theme.Typography
+import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,8 +76,8 @@ fun ListaDeCompras(modifier: Modifier = Modifier) {
         modifier = modifier
     ) {
         ImagemTopo()
-        AdicionarItem(aoSalvarItem = { textNovo ->
-            listaDeItens = listaDeItens + ItemCompra(textNovo)
+        AdicionarItem(aoSalvarItem = { novoItem ->
+            listaDeItens = listaDeItens + novoItem
         })
         Spacer(modifier = Modifier.height(48.dp))
         Titulo(
@@ -156,11 +160,11 @@ fun ListaDeItems(
 }
 
 @Composable
-fun AdicionarItem(aoSalvarItem: (texto: String) -> Unit, modifier: Modifier = Modifier) {
-    var texto = rememberSaveable { mutableStateOf("") }
+fun AdicionarItem(aoSalvarItem: (item: ItemCompra) -> Unit, modifier: Modifier = Modifier) {
+    var texto by rememberSaveable { mutableStateOf("") }
     OutlinedTextField(
-        value = texto.value,
-        onValueChange = { texto.value = it },
+        value = texto,
+        onValueChange = { texto = it },
         placeholder = {
             Text(
                 text = "Digite o item que deseja adicionar",
@@ -178,8 +182,8 @@ fun AdicionarItem(aoSalvarItem: (texto: String) -> Unit, modifier: Modifier = Mo
     Button(
         shape = RoundedCornerShape(24.dp),
         onClick = {
-            aoSalvarItem(texto.value)
-            texto.value = ""
+            aoSalvarItem(ItemCompra(texto, false, getDataHora()))
+            texto = ""
         },
         modifier = modifier
     ) {
@@ -190,6 +194,12 @@ fun AdicionarItem(aoSalvarItem: (texto: String) -> Unit, modifier: Modifier = Mo
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
         )
     }
+}
+
+fun getDataHora(): String {
+    val dataHoraAtual = System.currentTimeMillis()
+    val dataHoraFormata = SimpleDateFormat("EEEE (dd/MM/yyyy) 'às' HH:mm", Locale("pt", "BR"))
+    return dataHoraFormata.format(dataHoraAtual)
 }
 
 @Composable
@@ -267,11 +277,10 @@ fun ItemDaLista(
             }
         }
         Text(
-            "Segunda-feira (31/10/2022) às 08:30",
+            item.datahora,
             Modifier.padding(top = 8.dp),
             style = Typography.labelSmall,
         )
-
     }
 }
 
@@ -309,7 +318,7 @@ private fun AdicionarItemPreview() {
 @Composable
 fun ItemDaListaPreview() {
     SuperComprasTheme {
-        ItemDaLista(item = ItemCompra("Suco"))
+        ItemDaLista(item = ItemCompra("Suco", false, "Segunda-feira"))
     }
 }
 
@@ -347,5 +356,6 @@ fun GreetingPreview() {
 
 data class ItemCompra(
     val texto: String,
-    var foiComprado: Boolean = false
+    var foiComprado: Boolean = false,
+    val datahora: String
 )
