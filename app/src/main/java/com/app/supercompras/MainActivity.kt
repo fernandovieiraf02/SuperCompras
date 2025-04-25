@@ -20,14 +20,16 @@ class MainActivity : ComponentActivity() {
         setContent {
             SuperComprasTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    Titulo(modifier = Modifier.padding(innerPadding))
                 }
             }
         }
     }
+}
+
+@Composable
+fun Titulo(modifier: Modifier = Modifier) {
+    Text(text = "Lista de Compras", modifier = modifier)
 }
 
 @Composable
@@ -36,6 +38,14 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
         text = "Hello Fernando",
         modifier = modifier
     )
+}
+
+@Preview
+@Composable
+private fun TituloPreview() {
+    SuperComprasTheme {
+        Titulo()
+    }
 }
 
 @Preview(showBackground = true)
